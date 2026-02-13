@@ -1,0 +1,10 @@
+clipped_sentences
+clipped.mp3
+./YTDown.com_YouTube_Media_Pp4_IibaELE_008_128k.m4a
+data
+**/*.csv
+*.pkl
+build
+ML_ProjectDescription.pdf
+audio_extraction.ipynb
+firstReport.tex
