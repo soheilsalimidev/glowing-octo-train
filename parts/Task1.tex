@@ -1,2 +1,22 @@
 \section{Data Cleaning And Feature Extraction}
-We preprocessed the audio data by first resampling all MP3 files to a uniform 16~kHz sampling rate to ensure consistent spectral representation across recordings. Each clip was then truncated or zero-padded to a fixed duration of 60 seconds, enabling the extraction of fixed-length feature vectors. Finally, we computed 13 Mel-Frequency Cepstral Coefficients (MFCCs) per frame and summarized them using their mean and standard deviation over time, resulting in a 26-dimensional feature vector per sample. These features were standardized using \texttt{StandardScaler} to have zero mean and unit variance, which is essential for distance-based machine learning algorithms to operate effectively in the presence of heterogeneous feature scales.
+All files were resampled to 16~kHz, its because can captures the full
+range of human phonetic
+content (up to 8~kHz) \cite{wiki:Voice_frequency}. This reduce
+computational needed compared
+to higher rates like 44.1~kHz.
+
+Each recording was truncated
+or zero-padded to exactly 60 seconds to ensure uniform input length,
+this make sure  feature dimensions to be consistent. We extracted
+Mel-Frequency Cepstral
+Coefficients (MFCCs) because
+they model the human auditory system’s perception of sound and
+capture language-specific phonetic.
+For each MFCC dimension, we computed its mean and SD across time,
+making a compact 26-dimensional feature
+vector that has both the average spectral shape and its
+variability. We
+normalize all features to zero mean and unit variance. This step is
+needed for distance-based algorithms like SVM, to
+prevent features with larger numerical ranges from disproportionately
+influencing similarity measures.
