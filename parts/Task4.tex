@@ -1,1 +1,186 @@
-\section{}
+\section{Metrics and Evaluation}
+In this section, all metrics and visualizations are computed on
+\textbf{\textit{the
+test set}}
+, which constitutes 20\% of the original dataset and was held
+out for evaluation.
+
+\subsection{Classification}
+This evaluates three classification models that we trained (SVM,
+Random Forest, and Neural Network) using Accuracy, F1-Score, and
+Confusion Matrix metrics.
+
+\subsubsection{SVM}
+\begin{itemize}
+  \item \textbf{Accuracy}: 100.00\% (perfect classification across all samples)
+  \item \textbf{F1-Score}: 1.0000 (both weighted and macro averages)
+  \item \textbf{Precision \& Recall}: 1.0000 for all classes
+    (weighted and macro)
+  \item \textbf{Confusion Matrix}: Perfect diagonal with zero
+    off-diagonal elements (Fig.~\ref{fig:confusion}), showing there is no
+    misclassifications for any class
+\end{itemize}
+
+\subsubsection{Random Forest}
+\begin{itemize}
+  \item \textbf{Accuracy}: 97.20\%
+  \item \textbf{F1-Score}: 0.9721 (weighted), 0.9723 (macro)
+  \item \textbf{Precision}: 0.9724 (weighted), 0.9726 (macro)
+  \item \textbf{Recall}: 0.9720 (weighted), 0.9722 (macro)
+  \item \textbf{Confusion Matrix}: a bit  of misclassifications observed
+    between Italian and Korean classes (Fig.~\ref{fig:confusion}).
+    Korean class shows lowest recall (94.4\%) because of samples
+    misclassified as Italian
+\end{itemize}
+\subsubsection{Neural Network}
+\begin{itemize}
+  \item \textbf{Accuracy}: 97.90\%
+  \item \textbf{F1-Score}: 0.9792 (both weighted and macro averages)
+  \item \textbf{Precision}: 0.9806 (weighted), 0.9808 (macro)
+  \item \textbf{Recall}: 0.9790 (weighted and macro)
+  \item \textbf{Confusion Matrix}: Primary errors occur between
+    German and Italian classes, and Korean misclassified as Italian
+    (Fig.~\ref{fig:confusion}). German class shows lowest recall (97.1\%)
+\end{itemize}
+
+\subsubsection{Model Comparison}
+\begin{table}[H]
+  \centering
+  \caption{Summary of model performance metrics, all weighted.}
+  \label{tab:metrics}
+  \begin{tabular}{lrrr}
+    \toprule
+    & \textbf{Precision} & \textbf{Recall} &
+    \textbf{F1} \\
+    \midrule
+    SVM & 1.0000 & 1.0000 & 1.0000 \\
+    Random Forest & 0.9724 & 0.9720 & 0.9721 \\
+    Neural Network & 0.9806 & 0.9790 & 0.9792 \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+as showied in Table~\ref{tab:metrics}again, the SVM has the
+\textbf{\textit{best performance}} , probably because
+the problem is
+linearly separable in the transformed feature space, and the kernel
+(RBF) perfectly
+captures class margins without overfitting.
+
+The Neural Network is better than Random Forest in all metrics,
+especially in precision, since it can learn non-linear
+discriminative features. Its error pattern (German/Korean
+misclassified as Italian) shows a that data's are close in either
+training data or when feature extractions outputs.
+
+Random Forest, has higher variance in
+per-class performance (Korean recall $94.4\%$ vs. German
+$100\%$), this may because of bagging-induced instability on borderline samples.
+
+Figure~\ref{fig:perclass} shows that SVM dominates per-class
+metrics, whereas the other two models show small gaps in Italian and
+Korean. Figure~\ref{fig:comparison}
+shows that weighted and macro F1-scores align for all
+models, showing class balance in the test set.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\textwidth]{img/classification_per_class.png}
+  \caption{Per-class performance (F1, Precision, Recall)}
+  \label{fig:perclass}
+\end{figure}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\textwidth]{img/classification_weighted_macro.png}
+  \caption{F1-score comparison and overall metrics}
+  \label{fig:comparison}
+\end{figure}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\textwidth]{img/ClassificationPer.png}
+  \caption{Confusion matrices (Accuracy: SVM=100\%, RF=97.20\%, NN=97.90\%)}
+  \label{fig:confusion}
+\end{figure}
+
+\subsection{Clustering}
+
+\subsubsection{Model Comparison}
+Table~\ref{tab:metrics_ckuster} compares clustering performance
+across four algorithms using 7 clusters each. GMM achieves
+the best purity (0.7832) and Adjusted Rand Index (0.4202),showing
+best with true labels.
+
+\begin{table}[H]
+  \centering
+  \caption{Clustering evaluation metrics (all models use 7 clusters)}
+  \label{tab:metrics_ckuster}
+  \begin{tabular}{lcccc}
+    \toprule
+    & \textbf{Clusters} & \textbf{Purity} & \textbf{ARI} &
+    \textbf{Silhouette} \\
+    \midrule
+    K-Means & 7.0 & 0.7063 & 0.3327 & 0.2799 \\
+    GMM & 7.0 & 0.7832 & 0.4202 & 0.1903 \\
+    Agglomerative & 7.0 & 0.7413 & 0.3848 & 0.2749 \\
+    DBSCAN & 7.0 & 0.6364 & 0.1398 & 0.0804 \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+GMM is better than others by modeling cluster shapes with full
+covariances, and better
+capturing language feature distributions than K-Means or
+Agglomerative. DBSCAN underperforms can be a cause of its sensitivity to
+feature-space geometry which may not be the best in this features
+that we extracted. So it has poor label alignment (ARI = 0.1398)
+and weak cohesion (silhouette = 0.0804).
+GMM’s lower silhouette score (0.1903) compared to K-Means (0.2799) is
+because silhouette evaluates geometric compactness without
+considering labels, while Purity and ARI measure correctness labels.
+
+\subsubsection{Cluster Composition Analysis}
+The cluster composition heatmaps (Figure~\ref{fig:composition})
+shows how each algorithm partitions the test set across the
+true languages.
+
+GMM has the best language alignment, 4 of 7 clusters are highly
+language-pure (German: 21/26 = 81\% in cluster 0, Italian: 21/26 =
+  81\% in cluster 2, Spanish: 20/20 = 100\% in cluster 4, Korean: 21/26
+= 81\% in cluster 6), with only a bit of cross-language.
+
+K-Means and Agglomerative show fragmentation (German and Italian each span 3–4
+clusters) and some mixing (Korean + Spanish in K-Means cluster
+4).
+
+DBSCAN performs worst, no cluster is higher than ~65\% purity, with
+mixing (cluster 1: 13 German + 15 Italian and cluster 3: 15
+Italian + 8 Spanish), showing its unsuitability here.
+
+\begin{figure}[h]
+  \centering
+  \includegraphics[width=\textwidth]{img/clustering_composition.png}
+  \caption{Cluster composition heatmaps. Color intensity indicates
+  proportion of language per cluster.}
+  \label{fig:composition}
+\end{figure}
+
+\subsubsection{PCA Visualization}
+Figure~\ref{fig:pca} shows cluster structures in 2D dimensions:
+\begin{itemize}
+  \item \textbf{GMM} is well-separated clusters with low
+    language overlap
+  \item \textbf{K-Means/Agglomerative}: Moderate separation but
+    language mixing at boundaries
+  \item \textbf{DBSCAN}: Diffuse clusters with lots of overlap
+    between languages
+\end{itemize}
+
+\begin{figure}[h]
+  \centering
+  \includegraphics[width=\textwidth]{img/clustering_comparison.png}
+  \caption{PCA projections of clustered embeddings. Each subplot
+  corresponds to a model, cluster IDs are shown in color bars.}
+  \label{fig:pca}
+\end{figure}

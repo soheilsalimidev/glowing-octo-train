@@ -1,0 +1,209 @@
+% !TEX encoding = UTF-8 Unicode
+\NeedsTeXFormat{LaTeX2e}
+\ProvidesPackage{ml-assignment}[Assignment Template]
+
+% Handle package options
+\RequirePackage{xkeyval}
+\DeclareOptionX{lang}{\def\MLLang{#1}}
+\def\MLLang{en} % Default language is English
+\ProcessOptionsX\relax
+
+% Load currfile to determine the directory of this .sty file
+\ifdefined\MLTemplatePath
+  \def\MLFontPath{\MLTemplatePath /font/}
+  \def\MLImagePath{\MLTemplatePath /img/}
+\else
+  \PackageError{ml-assignment}{%
+    Please define \string\MLTemplatePath in your main.tex file before \string\usepackage{ml-assignment}.%
+  }{Example: \string\def\string\MLTemplatePath{../template/}}
+\fi
+\typeout{MLFontPath = \MLFontPath}
+\typeout{MLImagePath = \MLImagePath}
+
+% Determine if Persian is needed based on language option
+\RequirePackage{ifthen}
+\newboolean{UsePersian}
+\ifthenelse{\equal{\MLLang}{fa}}{\setboolean{UsePersian}{true}}{\setboolean{UsePersian}{false}}
+
+% Required packages (common)
+\RequirePackage{graphicx}
+\RequirePackage{amsmath, amssymb}
+\RequirePackage{geometry}
+\RequirePackage{setspace}
+\RequirePackage{fancyhdr}
+\RequirePackage{titlesec}
+\RequirePackage{hyperref}
+\RequirePackage[dvipsnames]{xcolor}
+\RequirePackage{tcolorbox}
+\RequirePackage{xstring}
+\RequirePackage{calc}
+\RequirePackage{eso-pic}
+
+% --- BIBLATEX SUPPORT ---
+% Load biblatex (must come after hyperref)
+\RequirePackage[backend=biber, style=numeric-comp, sorting=none]{biblatex}
+% Attempt to load refrace.bib if it exists (in the same directory as the main .tex)
+\IfFileExists{refrace.bib}{%
+  \addbibresource{refrace.bib}%
+  \typeout{Loaded refrace.bib for references.}%
+}{%
+  \typeout{Warning: refrace.bib not found. No bibliography loaded.}%
+}
+% -------------------------
+
+% Load Persian support and define Persian-specific elements if needed
+\ifthenelse{\boolean{UsePersian}}{
+  \RequirePackage{xepersian} % loads fontspec, etc.
+  % Persian font
+  \settextfont[
+    BoldFont       = XB NiloofarBd,
+    ItalicFont     = XB NiloofarIt,
+    BoldItalicFont = XB NiloofarBdIt,
+    Path           = \MLFontPath,
+    Extension      = .ttf,
+    Color          = black
+  ]{XB Niloofar}
+
+  % Latin font for English/numbers within Persian context
+  \setlatintextfont[
+    Scale   = 0.85,
+    Color   = black,
+    Path    = \MLFontPath,
+  ]{Times New Roman}
+
+  % Custom section font (Persian)
+  \newfontfamily\subsubsectionfont[
+    Path       = \MLFontPath,
+    Extension  = .ttf,
+    Color      = black
+  ]{XB Titre}
+
+  % Define text commands for Persian labels
+  \def\@universityname{دانشگاه تهران}
+  \def\@collegename{پردیس دانشکده‌های فنی}
+  \def\@facultyname{دانشکده مهندسی برق و کامپیوتر}
+  \def\@namelabel{نام و نام خانوادگی}
+  \def\@studentidlabel{شماره دانشجویی}
+  \def\@datelabel{تاریخ}
+  \def\@defaultsubject{یادگیری ماشین}
+}{
+  \def\@universityname{University of Tehran}
+  \def\@collegename{College of Engineering}
+  \def\@facultyname{School of Electrical and Computer Engineering}
+  \def\@namelabel{Name and Surname}
+  \def\@studentidlabel{Student ID}
+  \def\@datelabel{Date}
+  \def\@defaultsubject{Machine Learning}
+}
+
+% Allow user override of assignment label
+\ifdefined\AssignmentLabel
+  \gdef\@assignmentlabel{\AssignmentLabel}
+\else
+  \ifthenelse{\boolean{UsePersian}}{
+    \gdef\@assignmentlabel{تمرین شماره}
+  }{
+    \gdef\@assignmentlabel{Assignment Number}
+  }
+\fi
+
+% Colors
+\definecolor{darkblue}{rgb}{.204,.353,.541}
+\definecolor{lightblue}{RGB}{210, 227, 245}
+
+% Font size commands
+\newcommand{\sixteenpt}{\fontsize{16pt}{18pt}\selectfont}
+\newcommand{\eighteenpt}{\fontsize{18pt}{20pt}\selectfont}
+\newcommand{\twentytwopt}{\fontsize{22pt}{24pt}\selectfont}
+\newcommand{\twentyeightpt}{\fontsize{28pt}{30pt}\selectfont}
+
+% Section box
+\newcommand{\sectionbox}[1]{%
+  \begin{tcolorbox}[colback=lightblue, colframe=lightblue, width=\linewidth, sharp corners]
+    \color{darkblue}\eighteenpt #1
+  \end{tcolorbox}%
+}
+
+% Section formatting
+\ifthenelse{\boolean{UsePersian}}{
+  \titleformat{\section}
+    {\eighteenpt}{}{0em}{\subsubsectionfont\sectionbox}
+}{
+  \titleformat{\section}
+    {\eighteenpt}{}{0em}{\sectionbox}
+}
+\titlespacing{\section}{0pt}{0pt}{0pt}
+
+% Page frame
+\newlength{\PageFrameTopMargin}
+\newlength{\PageFrameBottomMargin}
+\newlength{\PageFrameLeftMargin}
+\newlength{\PageFrameRightMargin}
+\setlength{\PageFrameTopMargin}{1cm}
+\setlength{\PageFrameBottomMargin}{1cm}
+\setlength{\PageFrameLeftMargin}{1cm}
+\setlength{\PageFrameRightMargin}{1cm}
+
+\makeatletter
+\newlength{\Page@FrameHeight}
+\newlength{\Page@FrameWidth}
+\AddToShipoutPicture{%
+  \setlength{\Page@FrameHeight}{\paperheight-\PageFrameTopMargin-\PageFrameBottomMargin}%
+  \setlength{\Page@FrameWidth}{\paperwidth-\PageFrameLeftMargin-\PageFrameRightMargin}%
+  \put(\strip@pt\PageFrameLeftMargin,\strip@pt\PageFrameTopMargin){%
+    \framebox(\strip@pt\Page@FrameWidth,\strip@pt\Page@FrameHeight){}%
+  }%
+}
+
+% Define user commands for subject and assignment number
+\newcommand{\subject}[1]{\gdef\@subject{#1}}
+\newcommand{\assignNum}[1]{\gdef\@assignNum{#1}}
+
+% Default values for subject and assignment number based on language
+\providecommand{\@subject}{\@defaultsubject}
+\providecommand{\@assignNum}{0}
+
+% Custom title page
+\makeatletter
+\def\maketitle{%
+  \begin{center}
+    % Row with logos
+    \begin{tabular}{ p{3cm} p{7cm} p{3.5cm} }
+      \includegraphics[width=3cm, height=3cm]{\MLImagePath logo.png} &
+      \vspace{-3cm}
+      \begin{center}
+        {\sixteenpt{\textbf{\@universityname}}}\\
+        {\sixteenpt{\textbf{\@collegename}}}\\
+        {\sixteenpt{\textbf{\@facultyname}}}
+      \end{center}
+      &
+      \includegraphics[width=3.5cm]{\MLImagePath eng-logo.png}
+    \end{tabular}
+
+    \vspace{5cm}
+    {\twentyeightpt{\textbf{\@subject}}}\\
+
+    \vspace{1.5cm}
+    {\twentytwopt{\textbf{\@assignmentlabel\ \@assignNum}}}\\
+
+    \vspace{2.5cm}
+    {\sixteenpt{\@namelabel}}\\
+    {\sixteenpt{\@author}}\\[2em]
+
+    {\sixteenpt{\@studentidlabel}}\\
+    {\sixteenpt{\SNum}}\\
+
+    \vspace{0.9cm}
+    {\normalsize \@datelabel: \@date}
+  \end{center}
+}
+\makeatother
+
+% Student info (fixed)
+\AtBeginDocument{
+  \author{Soheil Salimi - Ali Sayyadi}
+  \def\SNum{810104170 - 810104194}
+  \date{\today}
+}
+
+\endinput
